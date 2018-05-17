@@ -1,0 +1,120 @@
+#!/bin/bash
+#
+# __XEN_USER__
+# __XEN_DOMAINS__
+# __XEN_RECIPES__
+# __XEN_BACKUPS__
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+db_get xen_manager_shell/ask_username
+USUARIO="${RET}"
+
+db_get xen_manager_shell/ask_password
+SENHA="${RET}"
+
+db_get xen_manager_shell/ask_groups
+GRUPOS="${RET}"
+
+db_get xen_manager_shell/ask_sudocfg
+SUDOGRPCFG="${RET}"
+
+db_get xen_manager_shell/config_domains
+DOMAINS_D="${RET}"
+
+db_get xen_manager_shell/config_recipes
+RECIPES_D="${RET}"
+
+db_get xen_manager_shell/config_backup
+BACKUP_D="${RET}"
+
+# Debug
+# echo "Usuario: ${USUARIO}"
+# echo "Senha: ${SENHA}"
+# echo "Grupos: ${GRUPOS}"
+# echo "Sudo: ${SUDOGRPCFG}"
+# echo "Recipes: ${RECIPES_D}"
+# echo "Backups: ${BACKUP_D}"
+
+XENMSCFG="/usr/local/etc/myXenShellLib.sh"
+XENMSCFGDIST="/usr/local/share/xen-manager-shell/myXenShellLib.sh.dist"
+USERSUDOERS="/etc/sudoers.d/${USUARIO}"
+USERSUDOERSDIST="/usr/local/share/xen-manager-shell/sudoers"
+
+if grep "${USUARIO}" /etc/passwd > /dev/null 2>&1; then
+	echo "$USUARIO already exists."
+else
+	echo "User created for Xen Manager Shell"
+	useradd -m -s /usr/local/bin/Login-xen-manager-shell -c "Xen Manager Shell Admin" ${USUARIO}
+fi
+
+echo "Defining password for ${USUARIO}"
+echo "${USUARIO}:${SENHA}" | chpasswd -m
+
+# Se usuario estiver no grupo sudo, não há necessidade de configurar o restante, pois não fará sentido.
+if [ "${SUDOGRPCFG}" = "yes" ]; then
+	echo "User ${USUARIO} added to sudo group"
+	adduser ${USUARIO} sudo
+else
+	# Caso contrário, vamos ao acesso limitado.
+	if grep sudo /etc/group | grep ${USUARIO} > /dev/null 2>&1; then
+		echo "User ${USUARIO} removed from sudo."
+		deluser ${USUARIO} sudo 
+	else
+		echo "User ${USUARIO} is not in sudo group."
+	fi
+	
+	echo "Configuring sudo for user ${USUARIO}"
+	if grep ${USUARIO} ${USERSUDOERS} > /dev/null 2>&1; then
+		echo "${USUARIO} is already configured in ${USERSUDOERS} file"
+	else
+		cat ${USERSUDOERSDIST} | sed -e "s#__XEN_USER__#${USUARIO}#g" > ${USERSUDOERS}
+		echo "Defining ${USERSUDOERS} access mode"
+		chmod 0440 ${USERSUDOERS} && echo "OK"
+	fi
+fi
+
+# Vamos tirar as vírgulas da lista ;-)
+GRPS=$(echo ${GRUPOS} | sed "s/,/\ /g")
+
+if [ -n "${GRPS}" ]; then
+	echo "Additional groups for ${USUARIO}: ${GRPS}"
+	for g in ${GRPS}
+	do
+		adduser ${USUARIO} ${g} && echo "${g} : OK"
+	done
+else
+	echo "No additional groups selected."
+	echo "Note that xen-manager-shell needs user ${USUARIO} to be in sudo group."
+fi
+
+# Aqui optamos por listar o arquivo original (dist em /usr/local/share/xen-manager-shell/)
+# e aplicar as mudanças com um sed, 
+echo "Adjusting Xen Manager Shell files..."
+cat ${XENMSCFGDIST} | sed -e "s#__XEN_DOMAINS__#${DOMAINS_D}#g" \
+ 	-e "s#__XEN_RECIPES__#${RECIPES_D}#g" \
+ 	-e "s#__XEN_BACKUPS__#${BACKUP_D}#g" > ${XENMSCFG}
+
+if [ ! -d "${DOMAINS_D}" ]; then
+	echo "Creating ${DOMAINS_D} directory"
+	mkdir -p ${DOMAINS_D} && echo "OK"
+else
+	echo "${DOMAINS_D} already exists."
+fi
+
+if [ ! -d "${RECIPES_D}" ]; then
+	echo "Creating ${RECIPES_D} directory"
+	mkdir -p ${RECIPES_D} && echo "OK"
+else
+	echo "${RECIPES_D} already exists."
+fi
+
+if [ ! -d "${BACKUP_D}" ]; then
+	echo "Creating ${BACKUP_D} directory"
+	mkdir -p ${BACKUP_D} && echo "OK"
+else
+	echo "${BACKUP_D} already exists."
+fi
+ 	
+exit 0

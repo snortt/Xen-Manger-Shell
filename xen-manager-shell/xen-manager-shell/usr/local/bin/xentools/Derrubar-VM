@@ -1,0 +1,35 @@
+#!/bin/bash
+#
+# Ferramenta para terminar as VMs para-virtualizadas, a partir 
+# das receitas do Xen, em /home/xen/recipes/
+#
+# Gabriel Marques <snortt@gmail.com>
+# Ter 17 Mar 2015 13:53:09 BRT
+#
+
+# ----- Don't touch here! -----
+# Loads our private library for xen manager
+. /usr/local/etc/myXenShellLib.sh
+# ---------------------------
+
+# You can touch here, but why should you? ;-)
+PS3="ENTER:List | CTRL+D:Back | CTRL+C:Exit | KICK:"
+
+clear 
+if [ -z "${VMS}" ]; then
+   printWarn "No running VMs found."
+   exit 201
+fi
+
+printMsg "Running VMs:"
+select img in ${VMS}
+do
+	printMsg 1 "To kick a VM means \"UNPLUGING the power cable!\""
+	printMsg "Are you sure? ${VERMELHO}Y${RESET} ${VERDE}N${RESET}(default)"
+	read -r RESP
+	if [ "$RESP" = "Y" -o "$RESP" = "y" ]; then
+		printMsg "${VERMELHO}Kicking VM ${VERDE}${img} ${RESET}"
+		sudo xm destroy ${img} && printOK
+	fi
+done
+

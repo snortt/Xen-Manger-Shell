@@ -1,0 +1,11 @@
+Package: xen-manager-shell
+Version: 1.0
+Section: admin
+Priority: extra
+Depends: adduser, debconf, sudo, xen-tools
+Architecture: all
+Maintainer: Gabriel Marques - snortt@gmail.com
+Description: Scripts to help managing a Xen Dom0.
+ After installation, login with the created account and interact with the menu.
+ The create-VM can be used directly on command line with ``-i'' for interactive mode.
+ 

@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+db_get xen_manager_shell/ask_username
+USUARIO="${RET}"
+
+db_get xen_manager_shell/config_domains
+DOMAINS_D="${RET}"
+
+db_get xen_manager_shell/config_recipes
+RECIPES_D="${RET}"
+
+db_get xen_manager_shell/config_backup
+BACKUP_D="${RET}"
+
+USERSUDOERS="/etc/sudoers.d/${USUARIO}"
+
+if grep ${USUARIO} /etc/passwd > /dev/null 2>&1; then
+	echo "Removing Xen Manager Shell user from system"
+	userdel ${USUARIO}
+fi
+
+if [ -f ${USERSUDOERS} ]; then
+	echo "Removing ${USUARIO} from sudoers"
+	rm -f ${USERSUDOERS}
+fi
+
+echo "Leaving domain, recipes and backup files on disk."
+if [ -d "${DOMAINS_D}" ]; then
+	echo "Domains: ${DOMAINS_D} : [OK]"
+else 
+	echo "Domains: ${DOMAINS_D} not found."
+fi
+
+if [ -d "${RECIPES_D}" ]; then
+	echo "Recipes: ${RECIPES_D} : [OK]"
+else 
+	echo "Recipes: ${RECIPES_D} not found."
+fi
+
+if [ -d "${BACKUP_D}" ]; then
+	echo "Backups: ${BACKUP_D} : [OK]"
+else 
+	echo "Backups: ${BACKUP_D} not found."
+fi
+

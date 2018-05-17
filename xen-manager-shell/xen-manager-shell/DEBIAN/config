@@ -1,0 +1,37 @@
+#!/bin/sh
+set -e
+
+# "Config being called"
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+# The questions
+db_input high xen_manager_shell/ask_username || true
+db_go
+
+db_input high xen_manager_shell/ask_password || true
+db_go
+
+db_input high xen_manager_shell/ask_groups || true
+db_go
+
+db_input high xen_manager_shell/ask_sudocfg || true
+db_go
+
+db_input high xen_manager_shell/config_domains || true
+db_go
+
+db_input high xen_manager_shell/config_recipes || true
+db_go
+
+db_input high xen_manager_shell/config_backup || true
+db_go
+
+# Check their answer.
+#db_get foo/like_debian
+#if [ "$RET" = "false" ]; then
+#    # Poor misguided one..
+#    db_input high foo/why_debian_is_great || true
+#    db_go
+#fi

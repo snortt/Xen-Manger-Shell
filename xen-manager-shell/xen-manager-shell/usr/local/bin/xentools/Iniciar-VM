@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+# Initiate a VM
+#
+# Gabriel Marques <snortt@gmail.com>
+# Ter 17 Mar 2015 13:53:09 BRT
+#
+
+# ----- Não mexa nisso! -----
+# Carrega nossa biblioteca particular =D
+. /usr/local/etc/myXenShellLib.sh
+# ---------------------------
+
+# Aqui você pode (mas não deve) mexer! ;-)
+PS3="ENTER:List | CTRL+D:Back | CTRL+C:Exit | BOOT:"
+
+clear
+printMsg "VMs found:"
+select img in ${RECIPES}
+do
+    if sudo xm list | egrep "$img" > /dev/null 2>&1; then
+        printWarn "VM ${VERDE}${img}${RESET} is already loaded"
+    else
+        printMsg "${VERMELHO}Initiating VM ${VERDE}${img}"
+        sudo xm create ${RECIPES_DIR}/${img}.${SUFFIX} && (printOK || printErro)
+		printMsg "Open VM console now? ${VERMELHO}Y${RESET} ${VERDE}N${RESET}(default)"
+		printMsg "Hint: ${VERMELHO}CTRL+]${RESET} closes the console"
+		read -r RESP
+		if [ "$RESP" = "Y" -o "$RESP" = "y" ]; then
+			sudo xm console ${img}.${SUFFIX%.*} && printOK 
+		fi 
+    fi
+done
+

@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# Open VMs console
+#
+# Gabriel Marques <snortt@gmail.com>
+# Tue Mar 17 19:40:23 BRT 2015
+#
+
+# ----- Don't touch here! -----
+# Loads our private library for xen manager
+. /usr/local/etc/myXenShellLib.sh
+# ---------------------------
+
+# You can touch here, but why should you? ;-)
+VMS=$(sudo xm list | egrep -v "(Name|Domain-0)" | tr -s " " | cut -d " " -f1)
+PS3="ENTER:List | CTRL+D:Back | CTRL+C:Exit | CONSOLE:"
+clear 
+
+if [ -z "${VMS}" ]; then
+   printWarn "No running VMs found."
+   exit 201
+fi
+
+printMsg 1 "${AMARELO}Close console: ${VERMELHOB}CTRL+]"
+printMsg "${VERMELHO}Running ${VERDE}VMs:"
+select img in ${VMS}
+do
+    printMsg "${VERMELHO}Console on VM ${VERDE}${img}"
+    sudo xm console ${img}
+done
+

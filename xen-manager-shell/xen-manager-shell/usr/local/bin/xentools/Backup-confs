@@ -1,0 +1,26 @@
+#!/bin/bash
+# 
+# Create Xen configuration backups
+# Gabriel Marques - snortt@gmail.com
+# Tue Mar 17 14:01:55 BRT 2015
+# 
+
+# ----- Don't touch here! -----
+# Loads our private library for xen manager
+. /usr/local/etc/myXenShellLib.sh
+# ---------------------------
+
+# You can touch here, but why should you? ;-)
+
+TIME_STAMP="$(date +%d%m%Y_%H.%M)"
+
+if [ ! -d ${BACKUP_DIR} ]; then
+	mkdir -p ${BACKUP_DIR} && printMsg "Backup dir created: ${BACKUP_DIR}"
+fi
+	
+(tar cjvf ${BACKUP_DIR}/${BACKUP_FILE_NAME}_${TIME_STAMP}.tar.bz2 ${XENBKP} 2> /dev/null ) && /
+	printOK "Backup finished" || \
+	printWarn "Warning! Some files could be missing."
+	
+chmod 664 ${BACKUP_DIR}/${BACKUP_FILE_NAME}_${TIME_STAMP}.tar.bz2
+

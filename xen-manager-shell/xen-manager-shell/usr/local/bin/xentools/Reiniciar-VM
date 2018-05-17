@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# Tool for rebooting running VMs 
+#
+# Instead of using reboot option, I prefer a shutdown/boot up approach
+#
+# Gabriel Marques <snortt@gmail.com>
+# Ter 17 Mar 2015 13:53:09 BRT
+#
+
+# ----- Don't touch here! -----
+# Loads our private library for xen manager
+. /usr/local/etc/myXenShellLib.sh
+# ---------------------------
+
+# You can touch here, but why should you? ;-)
+PS3="ENTER:List | CTRL+D:Back | CTRL+C:Exit | REBOOT:"
+
+clear 
+if [ -z "${VMS}" ]; then
+   printWarn "No running VM found."
+   exit 201
+fi
+
+printMsg "Running VMs:"
+select img in ${VMS}
+do
+    printMsg "${VERMELHO}Rebooting VM ${VERDE}${img}"
+    sudo xm shutdown -w -H ${img} && \
+    sudo xm create ${RECIPES_DIR}/${img%%.*}.${SUFFIX} && (printOK || printErro)
+    
+    # Give a couple of seconds for the VM to come back
+    for x in 1 2 3 4 5; do printMsg "${VERDE}. ${RESET}"; sleep 1; done
+    
+    # once we're ready for action
+	printMsg "Conect to VM console? ${VERMELHO}Y${RESET} ${VERDE}N${RESET}(default)"
+	printMsg "Tip: When finished, use ${VERMELHO}CTRL+]${RESET} closes the console"
+	read -r RESP
+	if [ "$RESP" = "Y" -o "$RESP" = "y" ]; then
+		sudo xm console ${img} && printOK 
+	fi 
+done

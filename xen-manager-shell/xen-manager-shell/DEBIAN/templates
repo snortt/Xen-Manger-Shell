@@ -1,0 +1,44 @@
+Template: xen_manager_shell/ask_username
+Type: string
+Default: xenop
+Description: Login for using and managing the Dom0 through Xen Manager Shell
+
+Template: xen_manager_shell/ask_password
+Type: string
+Default: xenop
+Description: Password for user to access Xen Manager Shell (default: xenop).
+
+Template: xen_manager_shell/ask_groups
+Type: string
+Default: ssh,tty
+Description: Additional groups where you want tue user to be added in.
+
+Template: xen_manager_shell/ask_sudocfg
+Type: select
+Choices: yes, no
+Default: no
+Description: Add created user to the group sudo?
+ .
+ Although this tool tries to take care of sudo configs for the created user,
+ please consider reading sudo's manpages if you believe this could compromise 
+ your system's overall security.
+
+Template: xen_manager_shell/config_domains
+Type: string
+Default: /home/xenop/domains
+Description: This is where Xen keeps its VM disk image files (domains).
+ .
+ If you already have a running Dom0, point this to where your DomU image files are.
+
+Template: xen_manager_shell/config_recipes
+Type: string
+Default: /home/xenop/recipes
+Description: This is where Xen keeps its VM configuration files.
+ .
+ If you already have a running Dom0, point this to where your DomU config files are.
+
+Template: xen_manager_shell/config_backup
+Type: string
+Default: /home/xenop
+Description: This is where this tool should store its backup files.
+

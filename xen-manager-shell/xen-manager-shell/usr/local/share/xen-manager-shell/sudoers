@@ -1,0 +1,17 @@
+# xen-manager-shell:
+Cmnd_Alias XEN_MANAGER_SHELL = /usr/local/bin/Login-xen-manager-shell, /usr/local/bin/xentools/*
+
+# Xen Tools:
+Cmnd_Alias XEN_TOOLS = /usr/bin/xt-*, /usr/bin/xen-*	
+
+# Xen Utils Common:
+Cmnd_Alias XEN_UTILS_COMMON = /usr/lib/xen-common/bin/xen-*, /usr/sbin/xen, \
+	/usr/sbin/xentrace_setmask, /usr/sbin/xl, /usr/sbin/xenpm, /usr/sbin/xenperf, \
+	/usr/sbin/cpuperf-xen, /usr/sbin/xentrace, /usr/sbin/xentop, /usr/sbin/cpuperf-perfcntr, \
+	/usr/sbin/xentrace_format, /usr/sbin/xm, /usr/sbin/xentrace_setsize
+
+Cmnd_Alias NOROOTPWD = /usr/bin/passwd [A-z]*, !/usr/bin/passwd root # Not root pwd!
+
+Cmnd_Alias NOSU = !/bin/su * root, !/usr/bin/sudo su *
+
+__XEN_USER__ ALL= NOPASSWD: XEN_MANAGER_SHELL, XEN_TOOLS, XEN_UTILS_COMMON

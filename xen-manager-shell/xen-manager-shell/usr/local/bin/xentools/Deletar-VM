@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# Tool for deleting VMs
+#
+# Gabriel Marques <snortt@gmail.com>
+# Wed Apr  1 09:30:55 BRT 2015
+#
+
+# ----- Don't touch here! -----
+# Loads our private library for xen manager
+. /usr/local/etc/myXenShellLib.sh
+# ---------------------------
+
+# You can touch here, but why should you? ;-)
+PS3="ENTER:List | CTRL+D:Back | CTRL+C:Exit | DELETE:"
+WAIT="5"
+
+clear
+printMsg "Running VMs:"
+select img in ${RECIPES}
+do
+    if sudo xm list | egrep "$img" > /dev/null 2>&1; then
+        printWarn "VM ${VERDE}${img}${RESET} is running."
+		printWarn "Shutdown VM? ${VERMELHO}Y${RESET} ${VERDE}N${RESET}(default)"
+		read -r RESP
+		if [ "$RESP" = "Y" -o "$RESP" = "y" ]; then
+			sudo xm shutdown -H ${img}.${SUFFIX%.*} && sleep ${WAIT} && printOK 
+			printMsg "VM ${VERDE}${img}${RESET} shutdown."
+		fi
+	fi 
+		
+	printMsg "Remove VM? ${VERMELHO}Y${RESET} ${VERDE}N${RESET}(default)"
+	read -r RESP
+	if [ "$RESP" = "Y" -o "$RESP" = "y" ]; then
+		sudo rm ${RECIPES_DIR}/${img}.${SUFFIX} && printOK "Removed config"
+		sudo rm ${DOMAINS_DIR}/${img}.${SUFFIX%.*}/* && printOK "Removed image files"
+		sudo rmdir ${DOMAINS_DIR}/${img}.${SUFFIX%.*} && printOK "Removed domain" 
+    else
+        printWarn "${VERMELHO}Aborted! ${VERDE}${img} left on disk."
+		exit 202
+    fi
+done
+

@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# List VMs available creation files
+#
+# Gabriel Marques <snortt@gmail.com>
+# Wed Apr  1 14:04:27 BRT 2015
+#
+
+# ----- Don't touch here! -----
+# Loads our private library for xen manager
+. /usr/local/etc/myXenShellLib.sh
+# ---------------------------
+
+# You can touch here, but why should you? ;-)
+PS3="ENTER:List | CTRL+D:Back | CTRL+C:Exit"
+
+clear 
+if [ -z "${RECIPES}" ]; then
+   printWarn "No files found."
+   exit 201
+fi
+
+printMsg "Configuration files found:"
+printMsg "${VERDE}${RECIPES}${RESET}"
+

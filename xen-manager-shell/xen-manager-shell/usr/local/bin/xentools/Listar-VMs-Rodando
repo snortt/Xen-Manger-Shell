@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# Tool for listing all running VMs
+#
+# Gabriel Marques <snortt@gmail.com>
+# Ter 17 Mar 2015 13:53:09 BRT
+#
+
+# ----- Don't touch here! -----
+# Loads our private library for xen manager
+. /usr/local/etc/myXenShellLib.sh
+# ---------------------------
+
+# You can touch here, but why should you? ;-)
+PS3="ENTER:List | CTRL+D:Back | CTRL+C:Exit"
+
+clear 
+if [ -z "${VMS}" ]; then
+   printWarn "No running VM found."
+   exit 201
+fi
+
+printMsg "Running VMs:"
+printMsg "${VMS}"
+

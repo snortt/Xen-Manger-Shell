@@ -1,0 +1,152 @@
+# ------------------------------------------------------------------
+#              *** DO NOT TOUCH THIS FILE! *** 
+# Debconf WILL overwrite it.
+# If you need to modify any configuration, use dpkg-reconfigure xen-manager-shell.
+# ------------------------------------------------------------------
+
+#
+# Environment configurations for Xen Manager Shell
+#
+# Do not execute this file. It should be sourced by each script, when necessary.
+#     eg.
+#     . /usr/local/etc/myXenShellLib.sh
+#
+# Gabriel Marques
+# snortt@gmail.com
+#
+# Sex Nov  4 14:48:15 BRST 2011
+#
+
+#
+# Configurations for all scripts
+LOCAL_DIR="/usr/local"
+BIN_DIR="${LOCAL_DIR}/bin"
+ETC_DIR="${LOCAL_DIR}/etc"
+#RECIPES_DIR="${ETC_DIR}/recipes"
+RECIPES_DIR="__XEN_RECIPES__"
+TOOLS_DIR="${BIN_DIR}/xentools"
+RECIPES=$(for r in $(ls ${RECIPES_DIR} | cut -d "." -f1); do echo -en "$r "; done)
+
+# These are all the available modules.
+TAREFAS=$(for f in ${TOOLS_DIR}/[[:alpha:]]*; do basename $f;done)
+
+# Sufix for Xen VMs configuration files.
+SUFFIX="local.cfg"
+
+# Where to find VMs.
+VMS=$(sudo xm list | egrep -v "(Name|Domain-0)" | tr -s " " | cut -d " " -f1)
+
+# VMs management.
+# Mirrors for Debian and Ubuntu. 
+MIRROR_DEBIAN="http://ftp.br.debian.org/debian/"
+MIRROR_UBUNTU="http://br.archive.ubuntu.com/ubuntu/"
+
+# Main bridged interface used by Dom0
+XENBR0="xenbr0"
+
+# This is where all VM image files are (img, swp files)
+DOMAINS_DIR="__XEN_DOMAINS__"
+
+# Distros supported by this tool
+#DISTROS=$(for d in $(ls ${DISTROS_DIR}/ | grep ".d" | cut -d "." -f1); do echo -en "$d "; done)
+DISTROS_DIR="/usr/share/debootstrap/scripts/"
+DISTROS=$(for d in $(ls ${DISTROS_DIR}/ | egrep -v '\.' ); do echo -en "$d "; done)
+
+# ---------------------------
+# Bakcup configurations
+# Where to store backups.
+# BACKUP_DIR="/home/xenop/"
+BACKUP_DIR="__XEN_BACKUPS__"
+
+# Backup file name.
+BACKUP_FILE_NAME="xen_configs"
+
+# What to backup.
+XENBKP="\
+    /etc/modules \
+    /etc/rc.local \
+    /etc/xen/*.conf \
+    /home/xenop/.ssh \
+    /home/xen/recipes \
+    /etc/default/grub \
+    /home/xenop/Login \
+    /home/xenop/.bashrc \
+    /home/xenop/.profile \
+    /home/xenop/xentools \
+    /etc/network/interfaces \
+    /etc/xen/xend-config.sxp \
+    /etc/xen-tools/xen-tools.conf \
+"
+
+#==========================================
+# ------------------
+# DON'T TOUCH HERE! 
+# Unless you really want to, but you'll need a Portuguese dictionary ;)
+# --------------------------------
+# Cores para o shell
+PRETO='\033[30m'
+VERMELHO='\033[31m'
+VERDE='\033[32m'
+AMARELO='\033[33m'                                                                                 
+AZUL='\033[34m'
+ROSA='\033[35m'
+CIANO='\033[36m'
+BRANCO='\033[37m'
+# ----------------------
+# Cores em negrito (bold)
+PRETOB='\033[30;1m'
+VERMELHOB='\033[31;1m'
+VERDEB='\033[32;1m'
+AMARELOB='\033[33;1m'
+AZULB='\033[34;1m'
+ROSAB='\033[35;1m'
+CIANOB='\033[36;1m'
+BRANCOB='\033[37;1m'
+# ----------------------
+# Restaura a cor padrão do Shell
+RESET='\033[0m'
+
+# -------------------------------
+# Tema de cores 
+# Cores usadas nas mensagens de texto ao longo do boot
+# Se desejar criar temas, é aqui que você deve modificar.
+TEXTO="$BRANCO"
+FORTE="$BRANCOB"
+ADERECO="$CIANO"
+DEV="$MAGENTA"
+MOD="$MAGENTA"
+ACERTO="$VERDEB"
+AVISO="$AMARELOB"
+ERRO="$VERMELHOB"
+SEPARADOR="$AMARELO"
+APONTADOR="$VERMELHO"
+
+# -----------------------------
+# Auxiliary functions
+# This function prints success messages
+printOK() {
+    echo -e "$@${TEXTO} ${ADERECO}[${ACERTO}OK${RESET}${ADERECO}]${RESET}"
+}
+
+# This function prints error messages
+printError() {
+    echo -e "$@${TEXTO} ${ADERECO}[${ERRO}Erro${RESET}${ADERECO}]${RESET}"
+}
+
+# This function prints warning messages
+printWarn() {
+    echo -e "$@${TEXTO} ${ADERECO}[${AVISO}Aviso${RESET}${ADERECO}]${RESET}"
+}
+
+# This function prints ordinary messages
+# If it receives 1 in $1, prints highlighted message ("*** TEXT ***").
+# Else, prints just the message ("TEXT").
+printMsg() {
+    if [ "$1" == "1" ]; then
+        shift
+        echo -e "${ADERECO}*** ${TEXTO}$@${TEXTO} ${ADERECO}***${RESET}"
+    else
+        echo -e "${TEXTO}$@ ${RESET}"
+    fi 
+}
+

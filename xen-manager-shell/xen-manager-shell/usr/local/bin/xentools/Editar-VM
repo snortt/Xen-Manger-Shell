@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+# Edit VMs configuration file
+#
+# Gabriel Marques <snortt@gmail.com>
+# Ter 17 Mar 2015 13:53:09 BRT
+#
+
+# ----- Don't touch here! -----
+# Loads our private library for xen manager
+. /usr/local/etc/myXenShellLib.sh
+# ---------------------------
+
+# You can touch here, but why should you? ;-)
+PS3="ENTER:List | CTRL+D:Back | CTRL+C:Exit | EDIT:"
+
+clear
+printMsg "VMs found:"
+select img in ${RECIPES}
+do
+    if sudo xm list | egrep "$img" > /dev/null 2>&1; then
+        printWarn "VM ${VERDE}${img}${RESET} is running"
+        printMsg "Shutdown VM now? ${VERMELHO}Y${RESET} ${VERDE}N${RESET}(default)"
+        read -r RESP
+        if [ "$RESP" = "Y" -o "$RESP" = "y" ]; then
+            sudo xm shutdown -H ${img}.${SUFFIX%.*} && printOK
+        else
+            printMsg "Your modifications will take effect on next boot."
+        fi
+    fi
+    sudo nano ${RECIPES_DIR}/${img}.${SUFFIX} && (printOK || printErro)
+done
+
+

@@ -1,0 +1,31 @@
+#!/bin/bash
+#
+# This is a login manager for Xen operator user created by xen-manager-shell.
+# When loged in, the user can interact with Xen Dom0 through this tool.
+#
+# Gabriel Marques - snortt@gmail.com
+# Wed Mar 18 11:35:42 BRT 2015
+#
+
+# ----- Don't touch here! -----
+# Loads our private library for xen manager
+. /usr/local/etc/myXenShellLib.sh
+# ---------------------------
+
+# You can touch here, but why should you? ;-)
+PS3="ENTER:List | CTRL+D:Exit | MENU: "
+PATH="${TOOLS_DIR}:${PATH}"
+export PATH
+
+clear
+printMsg 1 "${VERMELHO}Xen${RESET} Manager Shell on ${VERDE}$(hostname).${AMARELO}$(hostname -d)"
+printMsg "Select the desired operation"
+select tarefa in ${TAREFAS}
+do
+	case ${tarefa} in
+		Create-VM) 	  ${tarefa} interactive && printOK ;;
+		Backup-confs) ${tarefa} > /dev/null 2>&1 && printOK ;;
+		*) 			  ${tarefa}  && printOK ;;
+	esac
+done
+	

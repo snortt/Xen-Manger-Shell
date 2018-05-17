@@ -1,0 +1,127 @@
+#!/bin/bash
+#
+# Script para criar DomUs para-virtualizados (melhor performance).
+#
+# Gabriel Marques - snortt@gmail.com
+# Mon Mar 16 11:16:41 BRT 2015
+# 
+
+# ----- Don't touch here! -----
+# Loads our private library for xen manager
+. /usr/local/etc/myXenShellLib.sh
+# ---------------------------
+
+# You can touch here, but why should you? ;-)
+CREATE_GUEST="$(which xen-create-image)"
+PS3="ENTER:List | CTRL+D:Back | CTRL+C:Exit | CREATE:"
+
+if [ ! -d ${DOMAINS_DIR} ]; then
+	mkdir -p ${DOMAINS_DIR} && printMsg "Backup dir create in ${DOMAINS_DIR}"
+fi
+
+# Function to help deciding what mirror should we use
+detect_dist() {
+    #if stat $1 | egrep 'debian.d' > /dev/null 2>&1; then
+    if stat $1 | egrep 'potato|woody|sarge|breezy|sid' > /dev/null 2>&1; then
+        MIRROR=" --mirror=${MIRROR_DEBIAN} "
+    #elif stat $1 | egrep 'edgy.d|dapper.d|karmic.d' > /dev/null 2>&1; then
+    elif stat $1 | egrep 'edgy|warty|hoary|dapper|feisty|gutsy' > /dev/null 2>&1; then
+        MIRROR=" --mirror=${MIRROR_UBUNTU} "
+    else
+        MIRROR=" "
+    fi
+}
+ 
+clear
+if [ "$1" = "interactive" ]; then
+	printMsg 1 "Create ${VERDE}VM${RESET} in ${AMARELO}Xen ${VERMELHO}Dom0${RESET} "
+	printMsg "VM Name: "
+	read -r NOME
+	printMsg "Total CPUs: "
+	read -r CPUS
+	printMsg "Total RAM (mb/gb): "
+	read -r MEM
+	printMsg "Supported distros:"
+    printMsg "\t-----------------------------------------------"
+    printMsg "${VERDE}${DISTROS}"
+    printMsg "\t-----------------------------------------------"
+	printMsg "Distro Linux: "
+	read -r DIST
+	printMsg "HDD capacity (mb/gb): "
+	read -r DISK
+elif [ $# -ne 5 ]; then
+    printMsg "${BRANCOB}Uso: ${0##*/} [interactive] <name> <cpus> <mem> <distro> <disc>${RESET}"
+    printMsg "\t${BRANCOB}nome:${RESET}   Hostname for virtual machine (FQDN)"
+    printMsg "\t${BRANCOB}cpus:${RESET}   Total CPUs."
+    printMsg "\t${BRANCOB}mem:${RESET}    Total Memory (mb,gb)."
+    printMsg "\t${BRANCOB}distro:${RESET} Linux distro to be installed. "
+    printMsg "\t-----------------------------------------------"
+    printMsg "${VERDE}${DISTROS}"
+    printMsg "\t-----------------------------------------------"
+    printMsg "\t${BRANCOB}disc${RESET}: HDD capacity (mb,gb)."
+    exit 201
+else 
+	NOME="$1"
+	CPUS="$2"
+	MEM="$3"
+	DIST="$4"
+	DISK="$5"
+fi
+
+# Vamos definir o mirror apropriado, a partir da distribuicao escolhida.
+#detect_dist ${DISTROS_DIR}/${DIST}.d
+detect_dist ${DISTROS_DIR}/${DIST}
+
+# Vamos garantir os nomes corretos dos domínios
+if echo ${NOME} | egrep "\.local" > /dev/null 2>&1; then
+    NOME="${NOME}"
+else
+    NOME="${NOME}.local"
+fi 
+
+# Vamos garantir o sistema de arquivos correto
+case "$DIST" in
+	"squeeze") FS="ext3" ;;
+	*) FS="ext4" ;;
+esac
+
+printMsg "${VERMELHO}Host:${VERDE}${NOME} ${VERMELHO}CPU:${VERDE}${CPUS} ${VERMELHO}RAM:${VERDE}${MEM} ${VERMELHO}Distro:${VERDE}${DIST} ${VERMELHO}HDD:${VERDE}${DISK}"
+printMsg "${VERMELHO}Configs: ${AMARELO}${CFG_HOME}/${NOME}.conf"
+printMsg "Confirm? ${VERDE}Y${RESET}(default) or ${VERMELHO}N${RESET}"
+read OPT
+case $OPT in
+	[Nn])
+		printWarn "Aborted!"
+		exit 202 ;;
+	*) 
+		sudo ${CREATE_GUEST} \
+		--hostname=${NOME} \
+		--vcpus=${CPUS} \
+		--memory=${MEM} \
+		--dist=${DIST} \
+		--size=${DISK} \
+		--arch=amd64 \
+		--fs=${FS} \
+		--image=sparse \
+		--swap=128mb \
+		--bridge=${XENBR0} \
+		--pygrub \
+		--passwd \
+		--dhcp \
+		--dir=${DOMAINS_DIR} \
+		${MIRROR} \
+		--install-method=debootstrap \
+		--output=${RECIPES_DIR}
+		printOK
+		;;
+esac
+
+## -------------
+## Outras opcoes
+##--lvm=vg_sys \
+##--bridge=virbr0 \
+##--bridge=xenbr0 \
+##--ip=192.168.249.131 \
+##--gateway=192.168.249.2 \
+##--netmask=255.255.255.0 \
+##--nameserver=192.168.249.2 \

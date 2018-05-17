@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# Try to get IP from running VM.
+# 
+# CAVEAT: 
+# Note that this tool uses arp -n to extract the IP.
+# If the VM of interest isn't inside ARP table, IP won't be shown.
+# This was the first solution that came to my mind. I'm working on another 
+# possible way to automatically get IP from a running VM. Any suggestions will be 
+# more than welcome ;)
+# 
+# Gabriel Marques <snortt@gmail.com>
+# Ter 17 Mar 2015 13:53:09 BRT
+#
+
+# ----- Don't touch here! -----
+# Loads our private library for xen manager
+. /usr/local/etc/myXenShellLib.sh
+# ---------------------------
+
+# You can touch here, but why should you? ;-)
+VMS=$(sudo xl list | egrep -v "(Name|Domain-0)" | tr -s " " | cut -d " " -f1)
+PS3="ENTER:List | CTRL+D:Back | CTRL+C:Exit"
+
+clear 
+if [ -z "${VMS}" ]; then
+   printWarn "No running VMs found."
+   exit 201
+fi
+
+printMsg "Running VMs:"
+select img in ${VMS}
+do
+        VMMAC="$(xl network-list $img | awk -F " " '!/Idx|Mac|Addr/ {print $3}')"
+        VMIP="$(arp -n | grep ${VMMAC} | awk -F " " '{print $1}')"
+        printMsg "\nVM: ${VERDE}$img ${RESET}| MAC: ${AMARELO}$VMMAC ${RESET}| IP: ${VERMELHO}${VMIP} ${RESET}\n"
+done

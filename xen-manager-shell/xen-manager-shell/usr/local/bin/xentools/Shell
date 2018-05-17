@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# This simply runs a shell for the operator.
+#
+# Gabriel Marques - snortt@gmail.com
+# Wed Mar 18 12:30:16 BRT 2015
+#
+
+# ----- Don't touch here! -----
+# Loads our private library for xen manager
+. /usr/local/etc/myXenShellLib.sh
+# ---------------------------
+
+# You can touch here, but why should you? ;-)
+
+USER_SHELL=$(which bash)
+
+printMsg 1 "Invoking ${VERDE}${USER_SHELL}"
+printMsg "${VERMELHO}CTRL+D${RESET} or ${AMARELO}exit${RESET} to leave"
+sh -c 'cd ~; exec ${USER_SHELL:-bash}'
